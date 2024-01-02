@@ -1,0 +1,240 @@
+ <!DOCTYPE html>
+<html>
+<head>
+    <title>RêveRiche - Jeux Amigo et LOTO</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+        .brand-name {
+            position: fixed;
+            top: 10px;
+            left: 10px;
+            font-weight: bold;
+            font-style: italic;
+            color: navy;
+        }
+        .title {
+            font-size: 24px;
+            font-weight: bold;
+            margin-top: 50px;
+        }
+        .slogan {
+            font-size: 18px;
+            margin-bottom: 20px;
+        }
+        .game-choice-container {
+            margin-top: 20px;
+        }
+        .game-choice {
+            display: inline-block;
+            width: 150px;
+            height: 150px;
+            line-height: 150px;
+            margin: 10px;
+            cursor: pointer;
+            border-radius: 10px;
+            color: white;
+            font-size: 20px;
+            font-weight: bold;
+        }
+        #amigo-choice {
+            background-color: #FFC0CB;
+        }
+        #loto-choice {
+            background-color: #ADD8E6;
+        }
+        .game-container {
+            display: none;
+            margin-top: 20px;
+        }
+        .back-button, .reset-button {
+            margin: 10px;
+            cursor: pointer;
+        }
+        .results-container {
+            max-height: 70vh;
+            overflow-y: auto;
+        }
+        .number-ball {
+            display: inline-block;
+            width: 40px;
+            height: 40px;
+            line-height: 40px;
+            border-radius: 50%;
+            color: white;
+            font-weight: bold;
+            margin: 5px;
+            text-align: center;
+        }
+        .main-number {
+            background-color: navy;
+        }
+        .lucky-number {
+            background-color: #FF69B4; /* Hot pink for lucky number */
+        }
+    </style>
+    <script>
+        var currentLang = 'fr';
+
+        function setLanguage(lang) {
+            currentLang = lang;
+            var elements = document.getElementsByClassName('lang');
+            for (var i = 0; i < elements.length; i++) {
+                elements[i].style.display = 'none';
+            }
+            var selectedLangElements = document.getElementsByClassName(lang);
+            for (var i = 0; i < selectedLangElements.length; i++) {
+                selectedLangElements[i].style.display = 'block';
+            }
+        }
+
+        function showGame(gameId) {
+            document.getElementById('amigo-choice').style.display = 'none';
+            document.getElementById('loto-choice').style.display = 'none';
+            var games = document.getElementsByClassName('game-container');
+            for (var i = 0; i < games.length; i++) {
+                games[i].style.display = 'none';
+            }
+            document.getElementById(gameId).style.display = 'block';
+        }
+
+        function returnToMainMenu() {
+            var games = document.getElementsByClassName('game-container');
+            for (var i = 0; i < games.length; i++) {
+                games[i].style.display = 'none';
+            }
+            document.getElementById('amigo-choice').style.display = 'inline-block';
+            document.getElementById('loto-choice').style.display = 'inline-block';
+        }
+
+        function resetGame(gameId) {
+            var outputId = gameId.includes('amigo') ? (currentLang === 'fr' ? 'output-fr-amigo' : 'output-ar-amigo') : (currentLang === 'fr' ? 'output-fr-loto' : 'output-ar-loto');
+            document.getElementById(outputId).innerHTML = '';
+        }
+
+        function generateAmigoNumbers() {
+            var triesId = currentLang === 'fr' ? 'tries-fr-amigo' : 'tries-ar-amigo';
+            var outputId = currentLang === 'fr' ? 'output-fr-amigo' : 'output-ar-amigo';
+
+            var n = document.getElementById(triesId).value;
+            var output = document.getElementById(outputId);
+            output.innerHTML = '';
+
+            if (n < 1 || n > 100) {
+                alert("Veuillez entrer un nombre entre 1 et 100.");
+                return;
+            }
+
+            for (var i = 1; i <= n; i++) {
+                var numbers = generateRandomNumbers(7, 28);
+                var formattedNumbers = numbers.map(num => '<div class="number-ball main-number">' + num + '</div>').join(' ');
+                var message = currentLang === 'fr' 
+                    ? "Voici le jeu " + i + " : <br/>" + formattedNumbers
+                    : "اللعبة رقم " + i + " : <br/>" + formattedNumbers;
+                output.innerHTML += "<div class='results-container'>" + message + "</div><br/>";
+            }
+        }
+
+        function generateLotoNumbers() {
+            var triesId = currentLang === 'fr' ? 'tries-fr-loto' : 'tries-ar-loto';
+            var outputId = currentLang === 'fr' ? 'output-fr-loto' : 'output-ar-loto';
+
+            var n = document.getElementById(triesId).value;
+            var output = document.getElementById(outputId);
+            output.innerHTML = '';
+
+            if (n < 1 || n > 100) {
+                alert("Veuillez entrer un nombre entre 1 et 100.");
+                return;
+            }
+
+            for (var i = 1; i <= n; i++) {
+                var mainNumbers = generateRandomNumbers(5, 49);
+                var luckyNumber = generateRandomNumbers(1, 10)[0];
+                var formattedMainNumbers = mainNumbers.map(num => '<div class="number-ball main-number">' + num + '</div>').join(' ');
+                var formattedLuckyNumber = '<div class="number-ball lucky-number">' + luckyNumber + '</div>';
+                var message = currentLang === 'fr' 
+                    ? "Jeu " + i + " : " + formattedMainNumbers + " et numéro de chance : " + formattedLuckyNumber
+                    : "اللعبة رقم " + i  + " : " + formattedMainNumbers +  " مع رقم الحظ : " + formattedLuckyNumber + " و ";
+                output.innerHTML += "<div class='results-container'>" + message + "</div><br/>";
+            }
+        }
+
+        function generateRandomNumbers(count, max) {
+            var numbers = [];
+            while (numbers.length < count) {
+                var r = Math.floor(Math.random() * max) + 1;
+                if (numbers.indexOf(r) === -1) numbers.push(r);
+            }
+            return numbers;
+        }
+    </script>
+</head>
+<body>
+    <div class="brand-name">RêveRiche</div>
+    <div class="title">RêveRiche</div>
+    <div class="slogan">Un choix sans cœur, une chance pour tous.</div>
+    <div class="game-choice-container">
+        <div id="amigo-choice" class="game-choice" onclick="showGame('amigo-game')">Amigo</div>
+        <div id="loto-choice" class="game-choice" onclick="showGame('loto-game')">LOTO</div>
+    </div>
+
+    <!-- Amigo Game -->
+    <div id="amigo-game" class="game-container">
+        <select onchange="setLanguage(this.value)">
+            <option value="fr">Français</option>
+            <option value="ar">العربية</option>
+        </select>
+        <div class="lang fr">
+            <h2>Amigo</h2>
+            <p>Combien voulez-vous d'essais?</p>
+            <input type="number" id="tries-fr-amigo" min="1" max="100">
+            <button onclick="generateAmigoNumbers()">Tenter ma chance</button>
+            <div class="results-container" id="output-fr-amigo"></div>
+        </div>
+        <div class="lang ar" style="display: none;">
+            <h2>أميغو</h2>
+            <p>كم عدد المحاولات التي تريدها؟</p>
+            <input type="number" id="tries-ar-amigo" min="1" max="100">
+            <button onclick="generateAmigoNumbers()">جرب حظك</button>
+            <div class="results-container" id="output-ar-amigo"></div>
+        </div>
+        <button class="back-button" onclick="returnToMainMenu()">Retour</button>
+        <button class="reset-button" onclick="resetGame('amigo-game')">Réinitialiser</button>
+    </div>
+
+    <!-- LOTO Game -->
+    <div id="loto-game" class="game-container">
+        <select onchange="setLanguage(this.value)">
+            <option value="fr">Français</option>
+            <option value="ar">العربية</option>
+        </select>
+        <div class="lang fr">
+            <h2>LOTO</h2>
+            <p>Combien voulez-vous d'essais?</p>
+            <input type="number" id="tries-fr-loto" min="1" max="100">
+            <button onclick="generateLotoNumbers()">Tenter ma chance</button>
+            <div class="results-container" id="output-fr-loto"></div>
+        </div>
+        <div class="lang ar" style="display: none;">
+            <h2>LOTO</h2>
+            <p>كم عدد المحاولات التي تريدها؟</p>
+            <input type="number" id="tries-ar-loto" min="1" max="100">
+            <button onclick="generateLotoNumbers()">جرب حظك</button>
+            <div class="results-container" id="output-ar-loto"></div>
+        </div>
+        <button class="back-button" onclick="returnToMainMenu()">Retour</button>
+        <button class="reset-button" onclick="resetGame('loto-game')">Réinitialiser</button>
+    </div>
+ 
+</body>
+</html>
+
